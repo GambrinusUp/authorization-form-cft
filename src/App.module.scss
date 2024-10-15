@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1200px;
+  margin-top: 60px;
+  padding: 100px;
+  @media (max-width: 599px) {
+    padding: 20px;
+  }
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.info {
+  font-size: 16px;
+}
+
+.form_container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 464px;
+  gap: 24px;
+}
+
+.retryContainer {
+  display: flex;
+  justify-content: center;
+  align-self: start;
+  font-size: 14px;
+  color: #97a1af;
+}
+
+.retryLink {
+  color: #344051;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}

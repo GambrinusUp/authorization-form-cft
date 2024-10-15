@@ -1,0 +1,32 @@
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.formGroup input {
+  padding: 12px 8px 12px 12px;
+  max-height: 48px;
+  border: 1px solid #ced2da;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #000000;
+
+  &::placeholder {
+    color: #637083;
+  }
+}
+
+.formGroup input.errorInput {
+  border-color: red;
+}
+
+.errorText {
+  color: red;
+  font-size: 12px;
+}
