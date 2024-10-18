@@ -3,9 +3,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import styles from './App.module.scss';
 import Button from './components/Button/Button';
+import CountdownTimer from './components/CountdownTimer/CountdownTimer';
 import FormField from './components/FormField/FormField';
-
-const retryDelay = 120000;
+import UserData from './components/UserData/UserData';
+import { useAppDispatch, useAppSelector } from './hooks/redux';
+import { createOTP, signIn } from './store/auth/AuthActionCreators';
 
 interface FormData {
   phone: string;
@@ -15,38 +17,45 @@ interface FormData {
 function App() {
   const methods = useForm<FormData>();
   const { handleSubmit, setError, clearErrors, watch } = methods;
-  //const phoneValue = watch('phone');
+  const { user, isLoggedIn, retryDelay, error } = useAppSelector(
+    (state) => state.authStore
+  );
+  const dispatch = useAppDispatch();
+  const phoneValue = watch('phone');
   const [showCodeInput, setShowCodeInput] = useState(false);
-  const [countdown, setCountdown] = useState(retryDelay / 1000);
 
   useEffect(() => {
     if (retryDelay > 0) {
       setShowCodeInput(true);
-      setCountdown(retryDelay / 1000);
-      const interval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
     }
-  }, []);
+  }, [retryDelay]);
 
   const handleContinue = (data: FormData) => {
     const { phone } = data;
-    console.log(phone);
     clearErrors('phone');
-    console.log(phone);
+    dispatch(createOTP({ phone: phone.replace(/\D/g, '') }));
   };
 
   const handleLogin = (data: FormData) => {
-    console.log({ phone: data.phone, code: Number(data.code) });
+    dispatch(
+      signIn({ phone: data.phone.replace(/\D/g, ''), code: Number(data.code) })
+    );
   };
+
+  useEffect(() => {
+    if (error) {
+      setError('code', { type: 'manual', message: error });
+    }
+  }, [error, setError]);
+
+  if (isLoggedIn) {
+    return (
+      <div className={styles.container}>
+        <span className={styles.title}>Вы успешно вошли</span>
+        <UserData userData={user} />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -56,44 +65,45 @@ function App() {
       </span>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit(!showCodeInput ? handleLogin : handleContinue)}
+          onSubmit={handleSubmit(showCodeInput ? handleLogin : handleContinue)}
           className={styles.form_container}
         >
           <FormField
             name="phone"
             label="Телефон"
-            placeholder="+7 (999) 999-99-99"
-            mask="+7 (999) 999-99-99"
+            placeholder="8 (999) 999-99-99"
+            mask="9 (999) 999-99-99"
             validation={{
               required: 'Поле является обязательным',
               pattern: {
-                value: /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/,
+                value: /^\d \(\d{3}\) \d{3}-\d{2}-\d{2}$/,
                 message: 'Введите корректный номер телефона',
               },
             }}
           />
-          {!showCodeInput && (
+          {showCodeInput && (
             <FormField
               name="code"
               label="Проверочный код"
               placeholder="Проверочный код"
+              mask="999999"
               validation={{
                 required: 'Код должен содержать 6 цифр',
+                pattern: {
+                  value: /^\d{6}$/,
+                  message: 'Код должен содержать 6 цифр',
+                },
               }}
             />
           )}
-          <Button
-            type="submit"
-            text={!showCodeInput ? 'Войти' : 'Продолжить'}
-          />
-          {!showCodeInput && (
-            <div className={styles.retryContainer}>
-              {countdown ? (
-                <span>Повторная отправка кода через {countdown} секунд</span>
-              ) : (
-                <span className={styles.retryLink}>Отправить код снова</span>
-              )}
-            </div>
+          <Button type="submit" text={showCodeInput ? 'Войти' : 'Продолжить'} />
+          {showCodeInput && (
+            <CountdownTimer
+              initialDelay={retryDelay}
+              onRetry={() =>
+                dispatch(createOTP({ phone: phoneValue.replace(/\D/g, '') }))
+              }
+            />
           )}
         </form>
       </FormProvider>
