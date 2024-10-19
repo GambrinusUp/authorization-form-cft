@@ -16,7 +16,7 @@ npm run dev
 ## Используемые технологии:
 - React
 - TypeScript
-- Redux Tookit
+- Redux Toolkit
 - SCSS
 - React Hook Form
 - Vite
